@@ -10,7 +10,7 @@ namespace AOC2023
 		public static void Solve()
 		{
 			//var client = new HttpClient();
-			//var calibrationDoc = await client.GetStreamAsync("https://adventofcode.com/2023/day/1/input");
+			//var calibrationDoc = await client.GetStringAsync("https://adventofcode.com/2023/day/1/input");
 			var lines = calibrationDoc.Split('\n');
 			var sum = 0;
 			var regexPattern = "one|two|three|four|five|six|seven|eight|nine|\\d";
@@ -32,6 +32,6 @@ namespace AOC2023
 			Console.WriteLine(sum);
 		}
 		
-		static string calibrationDoc = ""; //paste it manually from the page
+		static string calibrationDoc = @""; //paste it manually from the page
 	}
 }
