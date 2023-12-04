@@ -1,8 +1,3 @@
-
-
-using System.Collections.ObjectModel;
-using Microsoft.VisualBasic;
-
 namespace AOC2023
 {
     public class Day2
