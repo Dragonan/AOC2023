@@ -6,10 +6,7 @@ namespace AOC2023
 	{
 		public static void Main()
 		{
-			//Day1.Solve();
-			//Day2.Solve();
-			//Day3.Solve();
-			Day4.Solve();
+			Day1.Solve();
 		}
 	}
 }
