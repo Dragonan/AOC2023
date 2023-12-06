@@ -4,7 +4,7 @@ namespace AOC2023
     {
         public static void Solve()
         {
-            var maps = input.Split("\n\n");
+            var maps = input.RemoveRF().Split("\n\n");
             var seeds = maps[0].Split(':')[1].TrimStart().Split(' ').Select(s => long.Parse(s)).ToArray();
             var sources = new List<(long LowerBound, long UpperBound)>();
             for (int i = 0; i < seeds.Length; i+=2)
