@@ -60,7 +60,61 @@ namespace AOC2023
 
         public static void SolvePart2()
         {
+            var lines = input.Split('\n');
+            var hands = new [] 
+            {
+                new List<(string Hand, int Bid)>(),
+                new List<(string Hand, int Bid)>(),
+                new List<(string Hand, int Bid)>(),
+                new List<(string Hand, int Bid)>(),
+                new List<(string Hand, int Bid)>(),
+                new List<(string Hand, int Bid)>(),
+                new List<(string Hand, int Bid)>()
+            };
 
+            foreach (var line in lines)
+            {
+                var data = line.Trim().Split(' ');
+                var hand = data[0];
+                var bid = int.Parse(data[1]);
+                //change the name of the cards so the standard string sorting orders them by power
+                hand = hand.Replace('A','E').Replace('T','A').Replace('J','1').Replace('Q','C').Replace('K','D');
+                var kinds = hand.GroupBy(c => c).OrderByDescending(g => g.Count()).ThenByDescending(g => g.Key);
+                var handCategory = AllDifferent;
+                var differentCards = kinds.Count();
+                //1s (Js) are Jokers
+                var strongestCombo = kinds.FirstOrDefault(g => g.Key != '1')?.Count();
+                var jokers = hand.Count(c => c == '1');
+                if (jokers > 0)
+                {
+                    differentCards--;
+                    strongestCombo += jokers;
+                }
+
+                switch(differentCards)
+                {
+                    //case 0 is in case of 11111
+                    case 0: case 1: handCategory = FiveOfAKind; break;
+                    case 2: handCategory = strongestCombo == 4 ? FourOfAKind : FullHouse; break;
+                    case 3: handCategory = strongestCombo == 3 ? ThreeOfAKind : TwoPairs; break;
+                    case 4: handCategory = OnePair; break;
+                    case 5: default: break;
+                }
+                
+                
+                hands[handCategory].Add((hand, bid));
+            }
+
+            var handsSorted = 1;
+            var sum = 0;
+
+            for (int i = 0; i < hands.Length; i++)
+            {
+                hands[i] = hands[i].OrderBy(h => h.Hand).ToList();
+                hands[i].ForEach(h => sum += h.Bid * handsSorted++);
+            }
+
+            Console.WriteLine(sum);
         }
 
         static string input = @""; //paste it manually from the page
