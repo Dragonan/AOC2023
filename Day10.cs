@@ -1,5 +1,4 @@
 using System.Drawing;
-using System.Net.NetworkInformation;
 
 namespace AOC2023
 {
