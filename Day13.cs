@@ -9,13 +9,13 @@ namespace AOC2023
 
             foreach (var zone in valley)
             {
-                var patternSum = 0;
                 var patterns = zone.Split('\n');
-                var firstRowMirrors = new List<int>();
+                var firstRowMirrors = new List<(int Index, bool HasSmudge)>();
                 for (int i = 0; i < patterns[0].Length - 1; i++)
                 {
-                    if (IsMirroredAt(patterns[0], i))
-                        firstRowMirrors.Add(i);
+                    var mirrored = IsMirroredAt(patterns[0], i);
+                    if (mirrored.IsMirrored)
+                        firstRowMirrors.Add((i,mirrored.HasSmudge));
                 }
 
                 for (int i = 1; i < patterns.Length; i++)
@@ -25,65 +25,87 @@ namespace AOC2023
 
                     for (int j = 0; j < firstRowMirrors.Count; j++)
                     {
-                        if (!IsMirroredAt(patterns[i],firstRowMirrors[j]))
+                        var firstMirror = firstRowMirrors[j];
+                        var mirrored = IsMirroredAt(patterns[i], firstMirror.Index);
+                        
+                        if (!mirrored.IsMirrored || (mirrored.HasSmudge && firstMirror.HasSmudge))
                         {
                             firstRowMirrors.RemoveAt(j);
                             j--;
                         }
+
+                        if (mirrored.IsMirrored && mirrored.HasSmudge && !firstMirror.HasSmudge)
+                        {
+                            firstMirror.HasSmudge = true;
+                            firstRowMirrors[j] = firstMirror;
+                        }
+                        
                     }
                 }
 
-                if (firstRowMirrors.Any())
+                if (firstRowMirrors.Any(m => m.HasSmudge))
                 {
-                    patternSum += firstRowMirrors.First() + 1;
-                    Console.WriteLine(patternSum);
-                    sum += patternSum;
+                    sum += firstRowMirrors.First(m => m.HasSmudge).Index + 1;
                     continue;
                 }
 
                 for (int i = 0; i < patterns.Length - 1; i++)
                 {
                     var mirrored = true;
+                    var hasSmudge = false;
                     for (int a=i, b=i+1; a>=0 && b < patterns.Length; a--, b++)
                     {
-                        if (patterns[a] != patterns[b])
+                        for (int j = 0; j < patterns[i].Length; j++)
                         {
-                            mirrored = false;
-                            break;
+                            if (patterns[a][j] != patterns[b][j])
+                            {
+                                if (!hasSmudge)
+                                {
+                                    hasSmudge = true;
+                                }
+                                else
+                                {
+                                    mirrored = false;
+                                    break;
+                                }
+                            }
                         }
                     }
 
-                    if (mirrored)
+                    if (mirrored && hasSmudge)
                     {
-                        patternSum += 100*(i+1);
+                        sum += 100*(i+1);
                         break;
                     }
                 }
-
-                Console.WriteLine(patternSum);
-                sum += patternSum;
             }
 
             Console.WriteLine(sum);
         }
 
-        static bool IsMirroredAt(string pattern, int i)
+        static (bool IsMirrored, bool HasSmudge) IsMirroredAt(string pattern, int i)
         {
             var lastIndex = pattern.Length - 1;
-            if (i < 0 || i >= lastIndex)
-                return false;
 
             var mirrored = true;
+            var hasSmudge = false;
             for (int a=i, b=i+1; a >= 0 && b <= lastIndex; a--, b++)
             {
                 if (pattern[a] != pattern[b])
                 {
-                    mirrored = false;
-                    break;
+                    if (!hasSmudge)
+                    {
+                        hasSmudge = true;
+                    }
+                    else
+                    {
+                        mirrored = false;
+                        break;
+                    }
                 }
             }
 
-            return mirrored;
+            return (mirrored, hasSmudge);
         }
 
         static string input = @""; //paste it manually from the page
