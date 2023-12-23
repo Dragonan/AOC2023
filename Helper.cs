@@ -6,8 +6,14 @@ namespace AOC2023
         {
             var firstNL = text.IndexOf('\n');
             if (firstNL > 0 && text[text.IndexOf('\n') - 1] == '\r')
-                return text.Remove('\r');
+                return text.Replace("\r","");
             return text;
+        }
+
+        public static string ReplaceAt(this string text, int index, char replacement)
+        {
+            var result = text.Substring(0, index) + replacement + text.Substring(index + 1);
+            return result;
         }
     }
 }
