@@ -15,5 +15,18 @@ namespace AOC2023
             var result = text.Substring(0, index) + replacement + text.Substring(index + 1);
             return result;
         }
+
+        public static void RemoveFirst<T>(this List<T> list, Predicate<T> match)
+        {
+            var index = list.FindIndex(match);
+            if (index != -1)
+                list.RemoveAt(index);
+        }
+
+        public static void FillWithEmptyLists<T>(this List<T>[] array)
+        {
+            for (int i = 0; i < array.Length; i++)
+                array[i] = new List<T>();
+        }
     }
 }
