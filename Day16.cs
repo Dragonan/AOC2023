@@ -12,13 +12,14 @@ namespace AOC2023
         {
             Contraption = input.Split('\n').Select(r => r.TrimEnd().ToCharArray()).ToArray();
             var max = 0;
+
             for (int i = 0; i < Contraption.Length; i++)
             {
-                var entrances = new (Point pnt, Direcitons dir)[] {
-                    (new Point(-1, i), Direcitons.Right),
-                    (new Point(Contraption.Length, i), Direcitons.Left),
-                    (new Point(i, -1), Direcitons.Down),
-                    (new Point(i, Contraption.Length), Direcitons.Up)
+                var entrances = new (Direcitons dir, Point pnt)[] {
+                    (Direcitons.Right, new (-1, i)),
+                    (Direcitons.Left, new (Contraption.Length, i)),
+                    (Direcitons.Down, new (i, -1)),
+                    (Direcitons.Up, new (i, Contraption.Length))
                 };
 
                 foreach (var entrance in entrances)
@@ -29,6 +30,13 @@ namespace AOC2023
                 }
             }
             Console.WriteLine(max);
+        }
+
+        public static void SolvePart1()
+        {
+            Contraption = input.Split('\n').Select(r => r.TrimEnd().ToCharArray()).ToArray();
+            MoveBeam(Direcitons.Right, new (-1, 0));
+            Console.WriteLine(EnergizedTiles.Count);
         }
 
         static void MoveBeam(Direcitons direction, Point coords)
