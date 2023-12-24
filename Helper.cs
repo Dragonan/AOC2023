@@ -1,3 +1,5 @@
+using System.Drawing;
+
 namespace AOC2023
 {
     public static class CustomExtensions
@@ -27,6 +29,15 @@ namespace AOC2023
         {
             for (int i = 0; i < array.Length; i++)
                 array[i] = new List<T>();
+        }
+
+        public static bool IsOutOfBounds(this Point point, int lengthX, int lengthY = 0)
+        {
+            if (lengthY == 0)
+                lengthY = lengthX;
+
+            return point.X >= lengthX || 0 > point.X ||
+                point.Y >= lengthY || 0 > point.Y;
         }
     }
 }
