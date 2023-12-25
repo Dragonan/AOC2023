@@ -2,11 +2,9 @@ using System.Drawing;
 
 namespace AOC2023
 {
-    public enum Direcitons { Up, Right, Down, Left }
-
     public static class Day16
     {
-        static Dictionary<Point, Direcitons> EnergizedTiles = new Dictionary<Point, Direcitons>();
+        static Dictionary<Point, List<Directions>> EnergizedTiles = new Dictionary<Point, List<Directions>>();
         static char[][] Contraption;
         public static void Solve()
         {
@@ -15,11 +13,11 @@ namespace AOC2023
 
             for (int i = 0; i < Contraption.Length; i++)
             {
-                var entrances = new (Direcitons dir, Point pnt)[] {
-                    (Direcitons.Right, new (-1, i)),
-                    (Direcitons.Left, new (Contraption.Length, i)),
-                    (Direcitons.Down, new (i, -1)),
-                    (Direcitons.Up, new (i, Contraption.Length))
+                var entrances = new (Directions dir, Point pnt)[] {
+                    (Directions.Right, new (-1, i)),
+                    (Directions.Left, new (Contraption.Length, i)),
+                    (Directions.Down, new (i, -1)),
+                    (Directions.Up, new (i, Contraption.Length))
                 };
 
                 foreach (var entrance in entrances)
@@ -35,70 +33,59 @@ namespace AOC2023
         public static void SolvePart1()
         {
             Contraption = input.Split('\n').Select(r => r.TrimEnd().ToCharArray()).ToArray();
-            MoveBeam(Direcitons.Right, new (-1, 0));
+            MoveBeam(Directions.Right, new (-1, 0));
             Console.WriteLine(EnergizedTiles.Count);
         }
 
-        static void MoveBeam(Direcitons direction, Point coords)
+        static void MoveBeam(Directions direction, Point coords)
         {
             char mirror;
             do
             {
                 switch (direction)
                 {
-                    case Direcitons.Up: coords.Y--; break;
-                    case Direcitons.Down: coords.Y++; break;
-                    case Direcitons.Left: coords.X--; break;
-                    case Direcitons.Right: coords.X++; break;
+                    case Directions.Up: coords.Y--; break;
+                    case Directions.Down: coords.Y++; break;
+                    case Directions.Left: coords.X--; break;
+                    case Directions.Right: coords.X++; break;
                     default: break;
                 }
                 
                 if (coords.IsOutOfBounds(Contraption.Length))
                     return;
-                if (CheckForLoopAndAdd(coords, direction))
+                if (EnergizedTiles.CheckForDuplicatesAndAdd(coords, direction))
                     return;
 
                 mirror = Contraption[coords.Y][coords.X];
             } while (mirror == '.');
 
-            if ((direction == Direcitons.Up && mirror == '|') ||
-                (direction == Direcitons.Left && (mirror == '\\' || mirror == '|')) ||
-                (direction == Direcitons.Right && (mirror == '/' || mirror == '|')))
+            if ((direction == Directions.Up && mirror == '|') ||
+                (direction == Directions.Left && (mirror == '\\' || mirror == '|')) ||
+                (direction == Directions.Right && (mirror == '/' || mirror == '|')))
             {
-                MoveBeam(Direcitons.Up, coords);
+                MoveBeam(Directions.Up, coords);
             }
 
-            if ((direction == Direcitons.Down && mirror == '|') ||
-                (direction == Direcitons.Left && (mirror == '/' || mirror == '|')) ||
-                (direction == Direcitons.Right && (mirror == '\\' || mirror == '|')))
+            if ((direction == Directions.Down && mirror == '|') ||
+                (direction == Directions.Left && (mirror == '/' || mirror == '|')) ||
+                (direction == Directions.Right && (mirror == '\\' || mirror == '|')))
             {
-                MoveBeam(Direcitons.Down, coords);
+                MoveBeam(Directions.Down, coords);
             }
 
-            if ((direction == Direcitons.Up && (mirror == '\\' || mirror == '-')) ||
-                (direction == Direcitons.Down && (mirror == '/' || mirror == '-')) ||
-                (direction == Direcitons.Left && mirror == '-'))
+            if ((direction == Directions.Up && (mirror == '\\' || mirror == '-')) ||
+                (direction == Directions.Down && (mirror == '/' || mirror == '-')) ||
+                (direction == Directions.Left && mirror == '-'))
             {
-                MoveBeam(Direcitons.Left, coords);
+                MoveBeam(Directions.Left, coords);
             }
 
-            if ((direction == Direcitons.Up && (mirror == '/' || mirror == '-')) ||
-                (direction == Direcitons.Down && (mirror == '\\' || mirror == '-')) ||
-                (direction == Direcitons.Right && mirror == '-'))
+            if ((direction == Directions.Up && (mirror == '/' || mirror == '-')) ||
+                (direction == Directions.Down && (mirror == '\\' || mirror == '-')) ||
+                (direction == Directions.Right && mirror == '-'))
             {
-                MoveBeam(Direcitons.Right, coords);
+                MoveBeam(Directions.Right, coords);
             }
-        }
-
-        static bool CheckForLoopAndAdd(Point coords, Direcitons direction)
-        {
-            if (!EnergizedTiles.ContainsKey(coords))
-            {
-                EnergizedTiles.Add(coords, direction);
-                return false;
-            }
-
-            return EnergizedTiles[coords] == direction;
         }
 
         static string input = @""; //paste it manually from the page

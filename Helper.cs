@@ -39,5 +39,22 @@ namespace AOC2023
             return point.X >= lengthX || 0 > point.X ||
                 point.Y >= lengthY || 0 > point.Y;
         }
+
+        public static bool CheckForDuplicatesAndAdd<TKey,T>(this Dictionary<TKey,List<T>> dictionary, TKey key, T value)
+        {
+            if (!dictionary.ContainsKey(key))
+            {
+                dictionary.Add(key, new List<T> { value });
+                return false;
+            }
+            
+            if (!dictionary[key].Contains(value))
+            {
+                dictionary[key].Add(value);
+                return false;
+            }
+
+            return true;
+        }
     }
 }
