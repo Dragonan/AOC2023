@@ -182,8 +182,6 @@ namespace AOC2023
             return area;
         }
 
-        static string test = @"";
-
         static string input = @""; //paste it manually from the page
     }
 }
