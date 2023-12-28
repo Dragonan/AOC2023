@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace AOC2023
 {
     public abstract class GateModule
@@ -13,9 +15,14 @@ namespace AOC2023
         public string Name { get; }
         public virtual bool Pulse { get; protected set; }
         public List<GateModule> Destinations { get; }
+        public bool IsEnd { get; set; }
+        public bool EndPulse { get; set; }
         
         public void SendPulse()
         {
+            if (IsEnd && Pulse == EndPulse)
+                ModuleBuffer.EndStateReached = true;
+ 
             foreach (var module in Destinations)
             {
                 module.ReceivePulse(Pulse, Name);
@@ -24,6 +31,7 @@ namespace AOC2023
         }
 
         public abstract void ReceivePulse(bool pulse, string from);
+        public abstract void Reset();
     }
 
     public class FlipFlopModule : GateModule
@@ -40,6 +48,11 @@ namespace AOC2023
                 State = !State;
                 ModuleBuffer.Modules.Add(this);
             }
+        }
+
+        public override void Reset()
+        {
+            this.State = LowPulse;
         }
     }
 
@@ -58,6 +71,12 @@ namespace AOC2023
             Inputs[from] = pulse;
             ModuleBuffer.Modules.Add(this);
         }
+        
+        public override void Reset()
+        {
+            foreach (var key in Inputs.Keys)
+                Inputs[key] = LowPulse;
+        }
     }
 
     public class BroadcastModule : GateModule
@@ -69,16 +88,31 @@ namespace AOC2023
             this.Pulse = pulse;
             ModuleBuffer.Modules.Add(this);
         }
+
+        public override void Reset()
+        {
+            this.Pulse = LowPulse;
+        }
     }
 
     public class SinkModule : GateModule
     {
-        public SinkModule(string name) : base(name) { }
+        public SinkModule(string name) : base(name) 
+        {
+            IsEnd = true;
+            EndPulse = LowPulse;
+        }
 
         public override void ReceivePulse(bool pulse, string from = "")
         {
-            if (pulse == LowPulse)
-                ModuleBuffer.HasSinkReceivedLowPulse = true;
+            Pulse = pulse;
+            if (Pulse == EndPulse)
+                ModuleBuffer.EndStateReached = true;
+        }
+        
+        public override void Reset()
+        {
+            this.Pulse = LowPulse;
         }
     }
 
@@ -89,7 +123,7 @@ namespace AOC2023
         public static Dictionary<bool, int> PulsesCount = new Dictionary<bool, int> 
             { { true, 0 }, { false, 0 } };
 
-        public static bool HasSinkReceivedLowPulse = false;
+        public static bool EndStateReached = false;
 
         public static void Execute()
         {
@@ -110,17 +144,6 @@ namespace AOC2023
             var text = input.RemoveRF().Split('\n');
             ParseModules(text);
             SolvePart2();
-        }
-
-        static void SolvePart2()
-        {
-            var count = 0L;
-            while (!ModuleBuffer.HasSinkReceivedLowPulse)
-            {
-                PressButton();
-                count++;
-            }
-            Console.WriteLine(count);
         }
 
         static void SolvePart1()
@@ -151,11 +174,17 @@ namespace AOC2023
             Console.WriteLine(highPulses * lowPulses);
         }
 
-        static void PressButton()
+        static void SolvePart2()
         {
-            var broadcaster = (BroadcastModule)Modules["broadcaster"];
+            var cycles = GetCyclesToReachEndModule();
+            Console.WriteLine(cycles);
+        }
+
+        static void PressButton(string startModule = "broadcaster")
+        {
+            var broadcaster = Modules[startModule];
             ModuleBuffer.PulsesCount[LowPulse]++;
-            broadcaster.ReceivePulse(LowPulse);
+            broadcaster.ReceivePulse(LowPulse, string.Empty);
             while (ModuleBuffer.Modules.Any())
                 ModuleBuffer.Execute();
         }
@@ -171,6 +200,55 @@ namespace AOC2023
                     states.AddRange(((ConjuctionModule)module).Inputs.Select(i => i.Value));
             }
             return states.ToArray();
+        }
+
+        static void ResetModules()
+        {
+            foreach (var module in Modules.Values)
+            {
+                module.Reset();
+                if (module.GetType() != typeof(SinkModule))
+                    module.IsEnd = false;
+            }
+
+            ModuleBuffer.Modules.Clear();
+            ModuleBuffer.EndStateReached = false;
+        }
+
+        // The structure is the same for each input.
+        // This can be changed to work recursively with all types of 
+        // module structures, but there is no point to do that for 
+        // this solution.
+        //               startName                                                      endName
+        //broadcaster -> flipflops -> (many flipflops), conjuction -> (many flipflops), conjunction -> conjuction -> end
+        static long GetCyclesToReachEndModule()
+        {
+            var broadcaster = Modules["broadcaster"];
+            var innerCycles = new List<(string startModule, string endModule)>();
+            foreach (var dest in broadcaster.Destinations)
+            {
+                var endModule = dest
+                    .Destinations.First(m => m.GetType() == typeof(ConjuctionModule))
+                    .Destinations.First(m => m.GetType() == typeof(ConjuctionModule));
+                
+                innerCycles.Add((dest.Name, endModule.Name));
+            }
+            var cycleLenghts = Enumerable.Repeat(0L, innerCycles.Count).ToArray();
+
+            for (int i = 0; i < innerCycles.Count; i++)
+            {
+                var endModule = Modules[innerCycles[i].endModule];
+                endModule.IsEnd = true;
+                endModule.EndPulse = HighPulse;
+                while (!ModuleBuffer.EndStateReached)
+                {
+                    PressButton(innerCycles[i].startModule);
+                    cycleLenghts[i]++;
+                }
+                ResetModules();
+            }
+
+            return ExtraMath.FindLCM(cycleLenghts);
         }
 
         static void ParseModules(string[] text)
@@ -218,71 +296,6 @@ namespace AOC2023
                 Modules[endModule.Name] = endModule;
         }
 
-        static string test = 
-@"broadcaster -> a
-%a -> inv, con
-&inv -> b
-%b -> con
-&con -> output";
-
-        static string input = 
-@"&sr -> hp
-%sh -> lr
-%jm -> pj, tf
-&xr -> sn, sb, hd
-%xt -> cc, tf
-%br -> fm
-%hd -> tp, xr
-%rg -> xr, dl
-%sb -> jh
-%xg -> rd
-%nf -> gx, gd
-%pj -> tf, dk
-%gq -> jm
-%vv -> br
-%gd -> gx
-&hp -> rx
-%cz -> gk, vv
-&gk -> vq, vv, br, zt, dj, xg
-%gr -> zn, xr
-&tf -> cc, rf, kk, xt, gq
-%dk -> tb, tf
-%nt -> ph, gk
-%fh -> xr, xs
-%jh -> xr, bz
-%pd -> gk, kb
-%kb -> nt, gk
-%fm -> dj, gk
-%kr -> tf
-%tp -> xr, rq
-%lr -> mz, gx
-&sn -> hp
-%mz -> rv
-%kj -> gx, hs
-%rv -> gx, ck
-%cr -> kk, tf
-%rq -> gr, xr
-%kk -> fc
-%ck -> gx, nf
-broadcaster -> hd, xt, kj, zt
-%tt -> gf
-%tb -> kr, tf
-%gf -> gx, sh
-%cc -> cr
-%fc -> qx, tf
-%dl -> xr
-&gx -> mz, sh, tt, sr, kj, tk
-%dj -> pd
-%zt -> gk, xg
-&rf -> hp
-&vq -> hp
-%xs -> sb, xr
-%qx -> tf, gq
-%bz -> xr, rg
-%ph -> gk
-%hs -> gx, tk
-%tk -> tt
-%rd -> gk, cz
-%zn -> fh, xr"; //paste it manually from the page
+        static string input = @""; //paste it manually from the page
     }
 }
