@@ -112,7 +112,7 @@ namespace AOC2023
                 }
             }
 
-            return FindLCM(routes.Select(n => (long)n).ToArray());
+            return ExtraMath.FindLCM(routes.Select(n => (long)n).ToArray());
 
         }
 
@@ -127,23 +127,6 @@ namespace AOC2023
             }
             return node;
         }
-
-        static long FindLCM(long[] numbers)
-        {
-            var lcm = numbers[0];
-            for (int i = 1; i < numbers.Length; i++)
-                lcm = lcm * numbers[i] / FindGCD(lcm, numbers[i]);
-            return lcm;
-        }
-
-        static long FindGCD(long a, long b)
-        {
-            if (b == 0)
-                return a;
-            return FindGCD(b, a % b);
-        }
-
-
 
         static string input = @""; //paste it manually from the page
     }
