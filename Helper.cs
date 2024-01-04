@@ -56,5 +56,19 @@ namespace AOC2023
 
             return true;
         }
+
+        public static string ConvertToLetterName(this int number)
+        {
+            string columnName = "";
+
+            while (number > 0)
+            {
+                int modulo = (number - 1) % 26;
+                columnName = Convert.ToChar('A' + modulo) + columnName;
+                number = (number - modulo) / 26;
+            } 
+
+            return columnName;
+        }
     }
 }
