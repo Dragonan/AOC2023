@@ -167,49 +167,49 @@ namespace AOC2023
         /// </summary>
         /// <returns></returns>
         public static bool CalculateLineLineIntersection(Vector<long> line1Point1, Vector<long> line1Point2, 
-            Vector<long> line2Point1, Vector<long> line2Point2, out Vector<long> resultSegmentPoint1, out Vector<long> resultSegmentPoint2)
+            Vector<long> line2Point1, Vector<long> line2Point2, out PointL resultSegmentPoint1, out PointL resultSegmentPoint2)
         {
             // Algorithm is ported from the C algorithm of 
             // Paul Bourke at http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline3d/
-            resultSegmentPoint1 = Vector<long>.Zero;
-            resultSegmentPoint2 = Vector<long>.Zero;
+            resultSegmentPoint1 = new PointL(0,0,0);
+            resultSegmentPoint2 = new PointL(0,0,0);
             
-            var p1 = line1Point1;
-            var p2 = line1Point2;
-            var p3 = line2Point1;
-            var p4 = line2Point2;
+            var p1 = new PointL(line1Point1);
+            var p2 = new PointL(line1Point2);
+            var p3 = new PointL(line2Point1);
+            var p4 = new PointL(line2Point2);
             var p13 = p1 - p3;
             var p43 = p4 - p3;
             
-            if (p43.DistanceSquared() < Math.E) {
+            if (p43.X < Math.E && p43.Y < Math.E && p43.Z < Math.E) {
                 return false;
             }
-            Vector3 p21 = p2 - p1;
-            if (p21.LengthSq() < Math.Epsilon) {
+            var p21 = p2 - p1;
+            if (p21.X < Math.E && p21.Y < Math.E && p21.Z < Math.E) {
                 return false;
             }
             
-            double d1343 = p13.X * (double)p43.X + (double)p13.Y * p43.Y + (double)p13.Z * p43.Z;
-            double d4321 = p43.X * (double)p21.X + (double)p43.Y * p21.Y + (double)p43.Z * p21.Z;
-            double d1321 = p13.X * (double)p21.X + (double)p13.Y * p21.Y + (double)p13.Z * p21.Z;
-            double d4343 = p43.X * (double)p43.X + (double)p43.Y * p43.Y + (double)p43.Z * p43.Z;
-            double d2121 = p21.X * (double)p21.X + (double)p21.Y * p21.Y + (double)p21.Z * p21.Z;
+            Int128 d1343 = p13.X * (Int128)p43.X + (Int128)p13.Y * p43.Y + (Int128)p13.Z * p43.Z;
+            Int128 d4321 = p43.X * (Int128)p21.X + (Int128)p43.Y * p21.Y + (Int128)p43.Z * p21.Z;
+            Int128 d1321 = p13.X * (Int128)p21.X + (Int128)p13.Y * p21.Y + (Int128)p13.Z * p21.Z;
+            Int128 d4343 = p43.X * (Int128)p43.X + (Int128)p43.Y * p43.Y + (Int128)p43.Z * p43.Z;
+            Int128 d2121 = p21.X * (Int128)p21.X + (Int128)p21.Y * p21.Y + (Int128)p21.Z * p21.Z;
             
-            double denom = d2121 * d4343 - d4321 * d4321;
-            if (Math.Abs(denom) < Math.Epsilon) {
+            Int128 denom = d2121 * d4343 - d4321 * d4321;
+            if ((denom < 0 ? -denom : denom) < (Int128)Math.E) {
                 return false;
             }
-            double numer = d1343 * d4321 - d1321 * d4343;
+            Int128 numer = d1343 * d4321 - d1321 * d4343;
             
-            double mua = numer / denom;
-            double mub = (d1343 + d4321 * (mua)) / d4343;
+            Int128 mua = numer / denom;
+            Int128 mub = (d1343 + d4321 * (mua)) / d4343;
             
-            resultSegmentPoint1.X = (float)(p1.X + mua * p21.X);
-            resultSegmentPoint1.Y = (float)(p1.Y + mua * p21.Y);
-            resultSegmentPoint1.Z = (float)(p1.Z + mua * p21.Z);
-            resultSegmentPoint2.X = (float)(p3.X + mub * p43.X);
-            resultSegmentPoint2.Y = (float)(p3.Y + mub * p43.Y);
-            resultSegmentPoint2.Z = (float)(p3.Z + mub * p43.Z);
+            resultSegmentPoint1.X = (long)(p1.X + mua * p21.X);
+            resultSegmentPoint1.Y = (long)(p1.Y + mua * p21.Y);
+            resultSegmentPoint1.Z = (long)(p1.Z + mua * p21.Z);
+            resultSegmentPoint2.X = (long)(p3.X + mub * p43.X);
+            resultSegmentPoint2.Y = (long)(p3.Y + mub * p43.Y);
+            resultSegmentPoint2.Z = (long)(p3.Z + mub * p43.Z);
 
             return true;
         }

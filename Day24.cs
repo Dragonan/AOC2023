@@ -11,9 +11,21 @@ namespace AOC2023
             Z = Z;
         }
 
+        public PointL(Vector<long> vector)
+        {
+            X = vector[0];
+            Y = vector[1];
+            Z = vector[2];
+        }
+
         public long X { get; set; }
         public long Y { get; set; }
         public long Z { get; set; }
+
+        public static PointL operator -(PointL a, PointL b)
+        {
+            return new PointL(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
+        }
     }
 
     public class Hailstone
